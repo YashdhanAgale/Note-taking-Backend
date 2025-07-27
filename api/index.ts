@@ -11,6 +11,7 @@ dotenv.config();
 const app = express();
 
 const allowedOrigins = [
+  'https://note-taking-frontend-pied.vercel.app',
   'https://note-taking-frontend-a2zu0ksgq-yashodhans-projects-7e631381.vercel.app',
 ];
 
