@@ -44,11 +44,7 @@ export const signup = async (req: Request, res: Response) => {
 
     user = await User.create({ name, dob, email });
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
-      expiresIn: "7d",
-    });
-
-    res.status(201).json({ message: "Signup successful", token });
+    res.status(201).json({ message: "Signup successful" });
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }
@@ -71,8 +67,8 @@ export const signin = async (req: Request, res: Response) => {
     // Store token in cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // only over HTTPS in prod
-      sameSite: "strict",
+      secure:false,
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -83,8 +79,10 @@ export const signin = async (req: Request, res: Response) => {
         name: user.name,
         dob: user.dob,
         email: user.email,
+        token: token
       },
     });
+  
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }

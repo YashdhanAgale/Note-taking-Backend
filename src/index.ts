@@ -9,7 +9,7 @@ import noteRoutes from './routes/noteRoutes';
 const app = express();
 dotenv.config();
 
-const allowedOrigins = ['http://localhost:5173']; 
+const allowedOrigins = ['https://note-taking-frontend-pied.vercel.app']; 
 
 app.use(
   cors({
