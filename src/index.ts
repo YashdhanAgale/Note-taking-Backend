@@ -11,8 +11,8 @@ const app = express();
 
 // ✅ Step 1: Allowed Origins
 const allowedOrigins = [
-  'https://note-taking-frontend-pied.vercel.app',
   'https://note-taking-frontend-a2zu0ksgq-yashodhans-projects-7e631381.vercel.app',
+  
 ];
 
 // ✅ Step 2: CORS Setup
