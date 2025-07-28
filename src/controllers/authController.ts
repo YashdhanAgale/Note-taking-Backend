@@ -1,16 +1,23 @@
+
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/User";
 import { sendEmail } from "../utils/sendEmail";
 import { generateOTP } from "../utils/generateOTP";
 
-// Temporary in-memory store (use Redis in production)
 const otpStore = new Map<string, { otp: string; expiresAt: number }>();
 
-// ---------- Send OTP ----------
+// Email validation
+const isValidEmail = (email: string): boolean => {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+};
+
+// Send OTP 
 export const sendOtp = async (req: Request, res: Response) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: "Email is required" });
+  if (!isValidEmail(email)) return res.status(400).json({ error: "Invalid email format" });
 
   const otp = generateOTP();
   otpStore.set(email, { otp, expiresAt: Date.now() + 5 * 60 * 1000 }); // 5 min
@@ -23,7 +30,7 @@ export const sendOtp = async (req: Request, res: Response) => {
   }
 };
 
-// ---------- OTP Verification ----------
+//  OTP Verification 
 const verifyOtp = (email: string, inputOtp: string) => {
   const record = otpStore.get(email);
   if (!record) throw new Error("OTP not found");
@@ -32,9 +39,12 @@ const verifyOtp = (email: string, inputOtp: string) => {
   otpStore.delete(email); // Ensure one-time use
 };
 
-// ---------- Signup Controller ----------
+//  Signup Controller 
 export const signup = async (req: Request, res: Response) => {
   const { name, dob, email, otp } = req.body;
+
+  if (!email) return res.status(400).json({ error: "Email is required" });
+  if (!isValidEmail(email)) return res.status(400).json({ error: "Invalid email format" });
 
   try {
     verifyOtp(email, otp);
@@ -50,9 +60,12 @@ export const signup = async (req: Request, res: Response) => {
   }
 };
 
-// ---------- Signin Controller ----------
+//  Signin Controller 
 export const signin = async (req: Request, res: Response) => {
   const { email, otp } = req.body;
+
+  if (!email) return res.status(400).json({ error: "Email is required" });
+  if (!isValidEmail(email)) return res.status(400).json({ error: "Invalid email format" });
 
   try {
     verifyOtp(email, otp);
@@ -64,12 +77,11 @@ export const signin = async (req: Request, res: Response) => {
       expiresIn: "7d",
     });
 
-    // Store token in cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure:true,
+      secure: true,
       sameSite: "none",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
     });
 
     res.status(200).json({
@@ -79,20 +91,18 @@ export const signin = async (req: Request, res: Response) => {
         name: user.name,
         dob: user.dob,
         email: user.email,
-        token: token
+        token,
       },
     });
-  
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }
 };
 
-
+//  Logout Controller 
 export const logout = (req: Request, res: Response) => {
   res.clearCookie("token", {
     httpOnly: true,
   });
-
   res.status(200).json({ message: "Logged out successfully" });
 };
